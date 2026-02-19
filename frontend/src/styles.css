@@ -1,0 +1,4 @@
+/* minimal styles so pages look decent without Tailwind installed */
+body{ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f3f4f6; color:#111827; margin:0; }
+a{ color:inherit; }
+input,button,select,textarea{ font:inherit; }

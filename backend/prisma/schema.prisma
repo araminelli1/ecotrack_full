@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Campi {
+  id     Int     @id @default(autoincrement())
+  nome   String
+  cidade String
+  estado String
+  uf     String
+  usuarios Usuarios[]
+}
+
+model Cursos {
+  id      Int      @id @default(autoincrement())
+  nome    String
+  sigla   String?
+  usuarios Usuarios[]
+}
+
+model Usuarios {
+  id          Int       @id @default(autoincrement())
+  nome        String
+  email       String    @unique
+  ra          String?   @unique
+  cursoId     Int?
+  campusId    Int?
+  tipoUsuario String
+  senhaHash   String
+  criadoEm    DateTime  @default(now())
+
+  curso  Cursos? @relation(fields: [cursoId], references: [id])
+  campus Campi?  @relation(fields: [campusId], references: [id])
+
+  entregas Entrega[]
+  validacoes Entrega[] @relation("Validador")
+  historicoRecompensa HistoricoRecompensa[]
+  usuarioMedalhas UsuarioMedalhas[]
+  pontuacao PontuacaoUsuario?
+}
+
+model TiposResiduos {
+  id        Int    @id @default(autoincrement())
+  nome      String
+  descricao String?
+  pontos    Float
+  cor       String?
+  itens     ItensEntrega[]
+  regras    RegraPontosResiduos[]
+}
+
+model Entrega {
+  id             Int     @id @default(autoincrement())
+  usuarioId      Int
+  status         String  @default("pendente")
+  avisos         String?
+  pontosEsperados Float?
+  pontosRecebidos Float?
+  createdAt      DateTime @default(now())
+  validadoPorId  Int?
+  validadoEm     DateTime?
+  avisosValidacao String?
+
+  usuario Usuarios @relation(fields: [usuarioId], references: [id])
+  validadoPor Usuarios? @relation("Validador", fields: [validadoPorId], references: [id])
+  itens ItensEntrega[]
+}
+
+model ItensEntrega {
+  id              Int    @id @default(autoincrement())
+  entregaId       Int
+  tipoResiduoId   Int
+  pesoEstimado    Float?
+  pesoAtual       Float?
+
+  entrega Entrega @relation(fields: [entregaId], references: [id])
+  tipo    TiposResiduos @relation(fields: [tipoResiduoId], references: [id])
+}
+
+model Recompensas {
+  id              Int    @id @default(autoincrement())
+  nome            String
+  descricao       String?
+  pontosNecessarios Int
+  tipo            String
+  historico HistoricoRecompensa[]
+}
+
+model HistoricoRecompensa {
+  id           Int @id @default(autoincrement())
+  usuarioId    Int
+  recompensaId Int
+  criadoEm     DateTime @default(now())
+
+  usuario Usuarios @relation(fields: [usuarioId], references: [id])
+  recompensa Recompensas @relation(fields: [recompensaId], references: [id])
+}
+
+model Medalhas {
+  id Int @id @default(autoincrement())
+  nome String
+  descricao String?
+  icone String?
+  usuarios UsuarioMedalhas[]
+}
+
+model UsuarioMedalhas {
+  id Int @id @default(autoincrement())
+  usuarioId Int
+  medalhaId Int
+  recebidoEm DateTime @default(now())
+
+  usuario Usuarios @relation(fields: [usuarioId], references: [id])
+  medalha Medalhas @relation(fields: [medalhaId], references: [id])
+}
+
+model RegraPontosResiduos {
+  id Int @id @default(autoincrement())
+  tipoResiduoId Int
+  pontos Float
+  validadeInicial DateTime?
+  validadeFinal DateTime?
+
+  tipo TiposResiduos @relation(fields: [tipoResiduoId], references: [id])
+}
+
+model PontuacaoUsuario {
+  usuarioId Int @id
+  pontosAcumulados Float @default(0)
+  usuario Usuarios @relation(fields: [usuarioId], references: [id])
+}
