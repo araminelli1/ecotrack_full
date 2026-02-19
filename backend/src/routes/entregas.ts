@@ -1,6 +1,7 @@
 import { Router } from "express";
 import prisma from "../prisma/client";
 import { authenticateToken } from "../middleware/auth";
+import { requireFuncionario } from "../middleware/requireFuncionario";
 
 const router = Router();
 
@@ -94,7 +95,7 @@ router.get("/", async (req, res) => {
    LISTAR ENTREGAS PENDENTES
    (FUNCIONÁRIO / VALIDADOR)
 ============================ */
-router.get("/pendentes", async (req, res) => {
+router.get("/pendentes", requireFuncionario, async (req, res) => {
   try {
     const entregas = await prisma.entrega.findMany({
       where: { status: "pendente" },
@@ -119,7 +120,7 @@ router.get("/pendentes", async (req, res) => {
 });
 
 // validação (apenas admin/validador)
-router.post("/:id/validate", async (req, res) => {
+router.post("/:id/validate", requireFuncionario, async (req, res) => {
   const validadorId = req.userId!;
   const tipoUsuario = req.tipoUsuario;
   const entregaId = Number(req.params.id);
