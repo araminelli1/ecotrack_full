@@ -90,7 +90,6 @@ router.get("/", async (req, res) => {
       .json({ message: "Erro ao listar entregas do usuário" });
   }
 });
-
 /* ============================
    LISTAR ENTREGAS PENDENTES
    (FUNCIONÁRIO / VALIDADOR)
@@ -120,6 +119,77 @@ router.get("/pendentes", requireFuncionario, async (req, res) => {
 });
 
 // validação (apenas admin/validador)
+/* ============================
+   DETALHES DE UMA ENTREGA
+============================ */
+router.get("/:id", async (req, res) => {
+  const userId = req.userId!;
+  const entregaId = Number(req.params.id);
+
+  try {
+    const entrega = await prisma.entrega.findUnique({
+      where: { id: entregaId },
+      include: {
+        usuario: true,
+        itens: { include: { tipo: true } },
+      },
+    });
+
+    if (!entrega) {
+      return res.status(404).json({ message: "Entrega não encontrada" });
+    }
+
+    if (entrega.usuarioId !== userId && req.tipoUsuario !== "funcionario") {
+      return res.status(403).json({ message: "Acesso negado" });
+    }
+
+    return res.json(entrega);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erro ao buscar entrega" });
+  }
+});
+
+/* ============================
+   CANCELAR ENTREGA (ALUNO)
+============================ */
+router.patch("/:id/cancelar", async (req, res) => {
+  const userId = req.userId!;
+  const entregaId = Number(req.params.id);
+
+  try {
+    const entrega = await prisma.entrega.findUnique({
+      where: { id: entregaId },
+    });
+
+    if (!entrega) {
+      return res.status(404).json({ message: "Entrega não encontrada" });
+    }
+
+    if (entrega.usuarioId !== userId) {
+      return res.status(403).json({
+        message: "Você só pode cancelar suas próprias entregas",
+      });
+    }
+
+    if (entrega.status !== "pendente") {
+      return res.status(400).json({
+        message: "Apenas entregas pendentes podem ser canceladas",
+      });
+    }
+
+    const atualizada = await prisma.entrega.update({
+      where: { id: entregaId },
+      data: { status: "cancelado" },
+    });
+
+    return res.json(atualizada);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erro ao cancelar entrega" });
+  }
+});
+
 router.post("/:id/validate", requireFuncionario, async (req, res) => {
   const validadorId = req.userId!;
   const tipoUsuario = req.tipoUsuario;
