@@ -192,31 +192,31 @@ router.patch("/:id/cancelar", async (req, res) => {
 
 router.post("/:id/validate", requireFuncionario, async (req, res) => {
   const validadorId = req.userId!;
-  const tipoUsuario = req.tipoUsuario;
   const entregaId = Number(req.params.id);
   const { status, pontosRecebidos, avisosValidacao } = req.body;
-  const usuario = await prisma.usuarios.findUnique({
-    where: { id: validadorId },
-  });
-
-  if (!usuario) {
-    return res.status(401).json({ message: "Usuário não autenticado" });
-  }
-
-  if (usuario.tipoUsuario === "aluno") {
-    return res.status(403).json({
-      message: "Apenas funcionários podem validar entregas",
-    });
-  }
-
-  if (tipoUsuario !== "funcionario") {
-    return res.status(403).json({
-      message: "Acesso negado. Apenas funcionários podem validar entregas.",
-    });
-  }
 
   try {
-    // 🔒 REGRA DE NEGÓCIO: não permitir validar com 0 pontos
+    // ============================
+    // BUSCAR ENTREGA
+    // ============================
+    const entregaAtual = await prisma.entrega.findUnique({
+      where: { id: entregaId },
+    });
+
+    if (!entregaAtual) {
+      return res.status(404).json({ message: "Entrega não encontrada" });
+    }
+
+    // 🔒 só pode validar se estiver pendente
+    if (entregaAtual.status !== "pendente") {
+      return res.status(400).json({
+        message: "Apenas entregas pendentes podem ser validadas",
+      });
+    }
+
+    // ============================
+    // VALIDAÇÃO DE PONTOS
+    // ============================
     if (status === "validado") {
       const pontos = Number(pontosRecebidos);
 
@@ -228,6 +228,9 @@ router.post("/:id/validate", requireFuncionario, async (req, res) => {
       }
     }
 
+    // ============================
+    // ATUALIZAR ENTREGA
+    // ============================
     const entrega = await prisma.entrega.update({
       where: { id: entregaId },
       data: {
@@ -239,7 +242,9 @@ router.post("/:id/validate", requireFuncionario, async (req, res) => {
       },
     });
 
-    // Atualiza pontuação do usuário
+    // ============================
+    // ATUALIZAR PONTUAÇÃO DO ALUNO
+    // ============================
     if (status === "validado") {
       await prisma.pontuacaoUsuario.upsert({
         where: { usuarioId: entrega.usuarioId },
@@ -255,10 +260,10 @@ router.post("/:id/validate", requireFuncionario, async (req, res) => {
       });
     }
 
-    res.json(entrega);
+    return res.json(entrega);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Erro na validação" });
+    return res.status(500).json({ message: "Erro na validação" });
   }
 });
 

@@ -6,7 +6,7 @@ import entregasRoutes from "./routes/entregas";
 import recompensasRoutes from "./routes/recompensas";
 import leaderboardRoutes from "./routes/leaderboard";
 import tiposResiduosRoutes from "./routes/tiposResiduos";
-
+import rankingRoutes from "./routes/ranking";
 dotenv.config();
 const app = express();
 app.use(cors());
@@ -17,5 +17,5 @@ app.use("/api/entregas", entregasRoutes);
 app.use("/api/recompensas", recompensasRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/tipos-residuos", tiposResiduosRoutes);
-
+app.use("/api/ranking", rankingRoutes);
 export default app;
