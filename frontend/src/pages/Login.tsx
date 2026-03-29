@@ -39,9 +39,9 @@ function Login() {
       localStorage.setItem("usuario", JSON.stringify(dados.user));
 
       // redirecionar conforme o tipo de usuário
-      if (dados.user.tipoUsuario === "aluno") {
+      if (dados.user.tipoUsuario === "ALUNO") {
         navigate("/dashboard-aluno");
-      } else if (dados.user.tipoUsuario === "funcionario") {
+      } else if (dados.user.tipoUsuario === "FUNCIONARIO") {
         navigate("/dashboard-funcionario");
       } else {
         navigate("/");
