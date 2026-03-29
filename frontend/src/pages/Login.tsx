@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const navigate = useNavigate();
@@ -96,6 +96,21 @@ function Login() {
           {carregando ? "Entrando..." : "Entrar"}
         </button>
       </form>
+      <div style={{ marginTop: 20, textAlign: "center", fontSize: "14px" }}>
+        <p style={{ margin: 0, color: "#555" }}>Não tem uma conta?</p>
+        <Link
+          to="/cadastro"
+          style={{
+            color: "#28a745",
+            textDecoration: "none",
+            fontWeight: "bold",
+            display: "inline-block",
+            marginTop: 5,
+          }}
+        >
+          Criar nova conta agora
+        </Link>
+      </div>
     </div>
   );
 }
