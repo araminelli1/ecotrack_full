@@ -6,6 +6,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Recompensas from "./pages/Recompensas";
 import Validacoes from "./pages/Validacoes";
 import PrivateRouteFuncionario from "./Routes/PrivateRouteFuncionario";
+import Cadastro from "./pages/Cadastro";
 
 // componente simples para proteger rotas
 function RotaProtegida({ children }: { children: React.ReactNode }) {
@@ -35,6 +36,7 @@ function App() {
         {/* login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/cadastro" element={<Cadastro />} />
 
         {/* rotas protegidas */}
         <Route

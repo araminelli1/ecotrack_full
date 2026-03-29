@@ -5,20 +5,22 @@ import { requireFuncionario } from "../middleware/requireFuncionario";
 
 const router = Router();
 
+/* =================================================
+   MIDDLEWARE GLOBAL
+================================================= */
 router.use(authenticateToken);
 
-/* ============================
+/* =================================================
    CRIAR ENTREGA (ALUNO)
-============================ */
+================================================= */
 router.post("/", async (req, res) => {
   const userId = req.userId!;
-  const { itens } = req.body; // itens: [{ tipoResiduoId, pesoEstimado }]
+  const { itens } = req.body;
 
-  // validação simples do body
   if (!Array.isArray(itens) || itens.length === 0) {
-    return res
-      .status(400)
-      .json({ message: "Envie 'itens' como array com pelo menos 1 item." });
+    return res.status(400).json({
+      message: "Envie 'itens' com pelo menos 1 item",
+    });
   }
 
   try {
@@ -31,12 +33,11 @@ router.post("/", async (req, res) => {
 
       if (!tipo) {
         return res.status(400).json({
-          message: `Tipo de resíduo ${item.tipoResiduoId} não existe`,
+          message: `Tipo ${item.tipoResiduoId} não existe`,
         });
       }
 
-      const peso = Number(item.pesoEstimado ?? 0);
-      pontosEsperados += peso * Number(tipo.pontos);
+      pontosEsperados += Number(item.pesoEstimado ?? 0) * Number(tipo.pontos);
     }
 
     const entrega = await prisma.entrega.create({
@@ -44,27 +45,27 @@ router.post("/", async (req, res) => {
         usuarioId: userId,
         status: "pendente",
         pontosEsperados,
-        itens: { create: itens },
+        itens: {
+          create: itens,
+        },
       },
       include: {
         itens: {
-          include: {
-            tipo: true,
-          },
+          include: { tipo: true },
         },
       },
     });
 
-    return res.json(entrega);
+    res.json(entrega);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Erro ao criar entrega" });
+    res.status(500).json({ message: "Erro ao criar entrega" });
   }
 });
 
-/* ============================
+/* =================================================
    LISTAR ENTREGAS DO USUÁRIO
-============================ */
+================================================= */
 router.get("/", async (req, res) => {
   const userId = req.userId!;
 
@@ -73,27 +74,21 @@ router.get("/", async (req, res) => {
       where: { usuarioId: userId },
       orderBy: { createdAt: "desc" },
       include: {
-        usuario: true,
-        itens: {
-          include: {
-            tipo: true,
-          },
-        },
+        itens: { include: { tipo: true } },
       },
     });
 
-    return res.json(entregas);
+    res.json(entregas);
   } catch (err) {
     console.error(err);
-    return res
-      .status(500)
-      .json({ message: "Erro ao listar entregas do usuário" });
+    res.status(500).json({ message: "Erro ao listar entregas" });
   }
 });
-/* ============================
-   LISTAR ENTREGAS PENDENTES
-   (FUNCIONÁRIO / VALIDADOR)
-============================ */
+
+/* =================================================
+   LISTAR PENDENTES (FUNCIONÁRIO)
+   ⚠️ IMPORTANTE vir antes de /:id
+================================================= */
 router.get("/pendentes", requireFuncionario, async (req, res) => {
   try {
     const entregas = await prisma.entrega.findMany({
@@ -101,27 +96,20 @@ router.get("/pendentes", requireFuncionario, async (req, res) => {
       orderBy: { createdAt: "desc" },
       include: {
         usuario: true,
-        itens: {
-          include: {
-            tipo: true,
-          },
-        },
+        itens: { include: { tipo: true } },
       },
     });
 
-    return res.json(entregas);
+    res.json(entregas);
   } catch (err) {
     console.error(err);
-    return res
-      .status(500)
-      .json({ message: "Erro ao listar entregas pendentes" });
+    res.status(500).json({ message: "Erro ao listar pendentes" });
   }
 });
 
-// validação (apenas admin/validador)
-/* ============================
-   DETALHES DE UMA ENTREGA
-============================ */
+/* =================================================
+   DETALHES ENTREGA
+================================================= */
 router.get("/:id", async (req, res) => {
   const userId = req.userId!;
   const entregaId = Number(req.params.id);
@@ -143,16 +131,16 @@ router.get("/:id", async (req, res) => {
       return res.status(403).json({ message: "Acesso negado" });
     }
 
-    return res.json(entrega);
+    res.json(entrega);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Erro ao buscar entrega" });
+    res.status(500).json({ message: "Erro ao buscar entrega" });
   }
 });
 
-/* ============================
+/* =================================================
    CANCELAR ENTREGA (ALUNO)
-============================ */
+================================================= */
 router.patch("/:id/cancelar", async (req, res) => {
   const userId = req.userId!;
   const entregaId = Number(req.params.id);
@@ -167,14 +155,12 @@ router.patch("/:id/cancelar", async (req, res) => {
     }
 
     if (entrega.usuarioId !== userId) {
-      return res.status(403).json({
-        message: "Você só pode cancelar suas próprias entregas",
-      });
+      return res.status(403).json({ message: "Acesso negado" });
     }
 
     if (entrega.status !== "pendente") {
       return res.status(400).json({
-        message: "Apenas entregas pendentes podem ser canceladas",
+        message: "Apenas pendentes podem ser canceladas",
       });
     }
 
@@ -183,87 +169,78 @@ router.patch("/:id/cancelar", async (req, res) => {
       data: { status: "cancelado" },
     });
 
-    return res.json(atualizada);
+    res.json(atualizada);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Erro ao cancelar entrega" });
+    res.status(500).json({ message: "Erro ao cancelar" });
   }
 });
 
-router.post("/:id/validate", requireFuncionario, async (req, res) => {
-  const validadorId = req.userId!;
+/* =================================================
+   VALIDAR ENTREGA (FUNCIONÁRIO) ⭐ SEGURO
+================================================= */
+router.patch("/:id/validate", requireFuncionario, async (req, res) => {
   const entregaId = Number(req.params.id);
   const { status, pontosRecebidos, avisosValidacao } = req.body;
+  const validadorId = req.userId!;
+
+  const allowed = ["validado", "rejeitado"];
+
+  if (!allowed.includes(status)) {
+    return res.status(400).json({
+      message: "Status deve ser 'validado' ou 'rejeitado'",
+    });
+  }
 
   try {
-    // ============================
-    // BUSCAR ENTREGA
-    // ============================
-    const entregaAtual = await prisma.entrega.findUnique({
+    const entrega = await prisma.entrega.findUnique({
       where: { id: entregaId },
     });
 
-    if (!entregaAtual) {
+    if (!entrega) {
       return res.status(404).json({ message: "Entrega não encontrada" });
     }
 
-    // 🔒 só pode validar se estiver pendente
-    if (entregaAtual.status !== "pendente") {
+    if (entrega.status !== "pendente") {
       return res.status(400).json({
-        message: "Apenas entregas pendentes podem ser validadas",
+        message: "Entrega já foi validada",
       });
     }
 
-    // ============================
-    // VALIDAÇÃO DE PONTOS
-    // ============================
-    if (status === "validado") {
-      const pontos = Number(pontosRecebidos);
+    const resultado = await prisma.$transaction(async (tx) => {
+      const atualizada = await tx.entrega.update({
+        where: { id: entregaId },
+        data: {
+          status,
+          pontosRecebidos: status === "validado" ? Number(pontosRecebidos) : 0,
+          validadoPorId: validadorId,
+          validadoEm: new Date(),
+          avisosValidacao,
+        },
+      });
 
-      if (isNaN(pontos) || pontos <= 0) {
-        return res.status(400).json({
-          message:
-            "Para validar uma entrega, os pontos recebidos devem ser maiores que 0.",
+      if (status === "validado") {
+        await tx.pontuacaoUsuario.upsert({
+          where: { usuarioId: entrega.usuarioId },
+          update: {
+            pontosAcumulados: {
+              increment: Number(pontosRecebidos),
+            },
+          },
+          create: {
+            usuarioId: entrega.usuarioId,
+            pontosAcumulados: Number(pontosRecebidos),
+          },
         });
       }
-    }
 
-    // ============================
-    // ATUALIZAR ENTREGA
-    // ============================
-    const entrega = await prisma.entrega.update({
-      where: { id: entregaId },
-      data: {
-        status,
-        pontosRecebidos: status === "validado" ? Number(pontosRecebidos) : 0,
-        validadoPorId: validadorId,
-        validadoEm: new Date(),
-        avisosValidacao,
-      },
+      return atualizada;
     });
 
-    // ============================
-    // ATUALIZAR PONTUAÇÃO DO ALUNO
-    // ============================
-    if (status === "validado") {
-      await prisma.pontuacaoUsuario.upsert({
-        where: { usuarioId: entrega.usuarioId },
-        update: {
-          pontosAcumulados: {
-            increment: Number(pontosRecebidos),
-          },
-        },
-        create: {
-          usuarioId: entrega.usuarioId,
-          pontosAcumulados: Number(pontosRecebidos),
-        },
-      });
-    }
-
-    return res.json(entrega);
+    res.json(resultado);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Erro na validação" });
+    res.status(500).json({ message: "Erro na validação" });
   }
 });
 
