@@ -15,16 +15,19 @@ function Login() {
     setCarregando(true);
 
     try {
-      const resposta = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const resposta = await fetch(
+        "https://ecotrack-full.onrender.com/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            senha,
+          }),
         },
-        body: JSON.stringify({
-          email,
-          senha,
-        }),
-      });
+      );
 
       if (!resposta.ok) {
         setErro("Email ou senha inválidos.");

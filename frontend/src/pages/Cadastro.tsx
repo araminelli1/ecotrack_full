@@ -34,7 +34,7 @@ export default function Cadastro() {
 
     try {
       // ✅ Cadastro
-      await axios.post("http://localhost:4000/api/auth/register", {
+      await axios.post("https://ecotrack-full.onrender.com/api/auth/register", {
         nome,
         email,
         senha,

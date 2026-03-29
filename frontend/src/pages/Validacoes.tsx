@@ -46,7 +46,7 @@ function Validacoes() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
-  const API_BASE = "http://localhost:4000/api";
+  const API_BASE = "https://ecotrack-full.onrender.com/api";
 
   function buildHeaders(): HeadersInit {
     const token = localStorage.getItem("token");
@@ -127,7 +127,7 @@ function Validacoes() {
           method: "POST",
           headers: buildHeaders(),
           body: JSON.stringify(body),
-        }
+        },
       );
 
       if (!res.ok) {
@@ -138,7 +138,7 @@ function Validacoes() {
       setMensagem(
         `Entrega #${selecionada.id} ${
           status === "validado" ? "validada" : "recusada"
-        } com sucesso!`
+        } com sucesso!`,
       );
 
       // remove a entrega da lista local (porque não é mais pendente)
@@ -187,7 +187,7 @@ function Validacoes() {
                       setPontosRecebidos(
                         e.pontosEsperados != null
                           ? String(Math.round(e.pontosEsperados))
-                          : ""
+                          : "",
                       );
                       setAvisosValidacao("");
                       setErro("");
@@ -282,8 +282,8 @@ function Validacoes() {
                 {salvando
                   ? "Salvando..."
                   : status === "validado"
-                  ? "Validar entrega"
-                  : "Recusar entrega"}
+                    ? "Validar entrega"
+                    : "Recusar entrega"}
               </button>
             </>
           )}

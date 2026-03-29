@@ -18,7 +18,7 @@ function Leaderboard() {
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
 
-  const API_BASE = "http://localhost:4000/api";
+  const API_BASE = "https://ecotrack-full.onrender.com/api";
 
   useEffect(() => {
     async function carregarRanking() {
