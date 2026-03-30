@@ -41,11 +41,15 @@ function Login() {
       localStorage.setItem("token", dados.token);
       localStorage.setItem("usuario", JSON.stringify(dados.user));
 
+      // 🔥 CORREÇÃO: Padronizando tudo para letras minúsculas para evitar bugs
+      const tipoUsuario = dados.user.tipoUsuario.toLowerCase();
+
       // redirecionar conforme o tipo de usuário
-      if (dados.user.tipoUsuario === "ALUNO") {
+      if (tipoUsuario === "aluno") {
         navigate("/dashboard-aluno");
-      } else if (dados.user.tipoUsuario === "FUNCIONARIO") {
-        navigate("/dashboard-funcionario");
+      } else if (tipoUsuario === "funcionario" || tipoUsuario === "admin") {
+        // Redireciona o funcionário direto para a tela de aprovações
+        navigate("/validacoes");
       } else {
         navigate("/");
       }
@@ -91,7 +95,12 @@ function Login() {
         <button
           type="submit"
           disabled={carregando}
-          style={{ width: "100%", padding: 10, cursor: "pointer" }}
+          style={{
+            width: "100%",
+            padding: 10,
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
         >
           {carregando ? "Entrando..." : "Entrar"}
         </button>
