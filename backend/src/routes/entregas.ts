@@ -84,6 +84,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Erro ao listar entregas" });
   }
 });
+
 /* =================================================
    RESUMO DE IMPACTO (ALUNO) - NOVO ⭐
 ================================================= */
@@ -97,7 +98,6 @@ router.get("/resumo/me", async (req, res) => {
     });
 
     // 2. Somar o peso de todos os ITENS das entregas que foram VALIDADAS
-    // Buscamos as entregas validadas e incluímos os itens
     const entregasValidadas = await prisma.entrega.findMany({
       where: {
         usuarioId: userId,
@@ -108,25 +108,33 @@ router.get("/resumo/me", async (req, res) => {
       },
     });
 
-    // Calculamos o peso total somando os itens de todas as entregas validadas
+    // Calculamos o peso total
     let pesoTotal = 0;
     entregasValidadas.forEach((entrega) => {
       entrega.itens.forEach((item: any) => {
-        // Adicionamos o :any aqui para facilitar
         const pReal = Number(item.pesoReal) || 0;
         const pEst = Number(item.pesoEstimado) || 0;
         pesoTotal += pReal > 0 ? pReal : pEst;
       });
     });
 
-    // 3. Lógica simples de próxima recompensa (pode ajustar depois)
+    // 3. Lógica de próxima recompensa atualizada para a Faculdade
     const pontos = pontuacao?.pontosAcumulados || 0;
-    let proximaRecompensa = "Vale-Café";
-    let meta = 500;
+    let proximaRecompensa = "Voucher R$ 10 na Cantina";
+    let meta = 200;
 
-    if (pontos >= 500) {
-      proximaRecompensa = "Ingresso Cinema";
+    if (pontos >= 200 && pontos < 400) {
+      proximaRecompensa = "Voucher R$ 20 na Cantina";
+      meta = 400;
+    } else if (pontos >= 400 && pontos < 600) {
+      proximaRecompensa = "10 Horas Complementares";
+      meta = 600;
+    } else if (pontos >= 600 && pontos < 1000) {
+      proximaRecompensa = "20 Horas Complementares";
       meta = 1000;
+    } else if (pontos >= 1000) {
+      proximaRecompensa = "Desconto de 3% na Mensalidade";
+      meta = 3000;
     }
 
     res.json({
@@ -140,6 +148,7 @@ router.get("/resumo/me", async (req, res) => {
     res.status(500).json({ message: "Erro ao calcular resumo" });
   }
 });
+
 /* =================================================
    LISTAR PENDENTES (FUNCIONÁRIO)
    ⚠️ IMPORTANTE vir antes de /:id
