@@ -84,7 +84,62 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Erro ao listar entregas" });
   }
 });
+/* =================================================
+   RESUMO DE IMPACTO (ALUNO) - NOVO ⭐
+================================================= */
+router.get("/resumo/me", async (req, res) => {
+  const userId = req.userId!;
 
+  try {
+    // 1. Buscar pontos acumulados na tabela de pontuação
+    const pontuacao = await prisma.pontuacaoUsuario.findUnique({
+      where: { usuarioId: userId },
+    });
+
+    // 2. Somar o peso de todos os ITENS das entregas que foram VALIDADAS
+    // Buscamos as entregas validadas e incluímos os itens
+    const entregasValidadas = await prisma.entrega.findMany({
+      where: {
+        usuarioId: userId,
+        status: "validado",
+      },
+      include: {
+        itens: true,
+      },
+    });
+
+    // Calculamos o peso total somando os itens de todas as entregas validadas
+    let pesoTotal = 0;
+    entregasValidadas.forEach((entrega) => {
+      entrega.itens.forEach((item: any) => {
+        // Adicionamos o :any aqui para facilitar
+        const pReal = Number(item.pesoReal) || 0;
+        const pEst = Number(item.pesoEstimado) || 0;
+        pesoTotal += pReal > 0 ? pReal : pEst;
+      });
+    });
+
+    // 3. Lógica simples de próxima recompensa (pode ajustar depois)
+    const pontos = pontuacao?.pontosAcumulados || 0;
+    let proximaRecompensa = "Vale-Café";
+    let meta = 500;
+
+    if (pontos >= 500) {
+      proximaRecompensa = "Ingresso Cinema";
+      meta = 1000;
+    }
+
+    res.json({
+      pontos: pontos,
+      pesoTotal: pesoTotal,
+      proximaRecompensa: proximaRecompensa,
+      faltamPontos: meta - pontos > 0 ? meta - pontos : 0,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao calcular resumo" });
+  }
+});
 /* =================================================
    LISTAR PENDENTES (FUNCIONÁRIO)
    ⚠️ IMPORTANTE vir antes de /:id
