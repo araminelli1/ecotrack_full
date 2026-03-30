@@ -151,6 +151,7 @@ function Dashboard() {
           padding: "10px 30px",
           backgroundColor: "white",
           borderBottom: "1px solid #e5e7eb",
+          overflowX: "auto", // Ajuda se a tela for menor
         }}
       >
         <Link
@@ -164,6 +165,10 @@ function Dashboard() {
         </Link>
         <Link to="/leaderboard" style={navLinkStyle}>
           Ranking
+        </Link>
+        {/* 👇 Aqui está o seu link novo da Loja! */}
+        <Link to="/recompensas" style={navLinkStyle}>
+          Loja de Recompensas 🎁
         </Link>
       </nav>
 
@@ -236,7 +241,7 @@ function Dashboard() {
               </div>
 
               {/* Card 3: Recompensa Real */}
-              <div style={cardStyle}>
+              <div style={{ ...cardStyle, position: "relative" }}>
                 <span
                   style={{
                     fontSize: "12px",
@@ -249,10 +254,34 @@ function Dashboard() {
                 <h3 style={{ fontSize: "20px", margin: "10px 0" }}>
                   {impacto.proximaRecompensa}
                 </h3>
-                <p style={{ fontSize: "13px", color: "#6b7280" }}>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#6b7280",
+                    marginBottom: "15px",
+                  }}
+                >
                   Faltam <strong>{impacto.faltamPontos} pontos</strong> para o
                   resgate.
                 </p>
+
+                {/* 👇 Botão interativo para o TCC */}
+                <Link
+                  to="/recompensas"
+                  style={{
+                    display: "inline-block",
+                    padding: "8px 12px",
+                    backgroundColor: "#fef3c7",
+                    color: "#d97706",
+                    textDecoration: "none",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    transition: "0.2s",
+                  }}
+                >
+                  Acessar a Loja ➔
+                </Link>
               </div>
             </div>
           </>

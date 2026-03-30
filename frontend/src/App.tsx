@@ -5,7 +5,6 @@ import Entregas from "./pages/Entregas";
 import Leaderboard from "./pages/Leaderboard";
 import Recompensas from "./pages/Recompensas";
 import Validacoes from "./pages/Validacoes";
-import PrivateRouteFuncionario from "./Routes/PrivateRouteFuncionario";
 import Cadastro from "./pages/Cadastro";
 
 // componente simples para proteger rotas
@@ -16,17 +15,7 @@ function RotaProtegida({ children }: { children: React.ReactNode }) {
     // se não tiver token, manda para a tela de login
     return <Navigate to="/login" replace />;
   }
-
   return children;
-}
-
-function DashboardFuncionario() {
-  return (
-    <div style={{ padding: 20 }}>
-      <h2>Dashboard do Funcionário</h2>
-      <p>Aqui vai ficar o painel do funcionário.</p>
-    </div>
-  );
 }
 
 function App() {
@@ -48,13 +37,10 @@ function App() {
           }
         />
 
+        {/* 🚀 O PULO DO GATO: Direciona o funcionário direto pras Validações! */}
         <Route
           path="/dashboard-funcionario"
-          element={
-            <RotaProtegida>
-              <DashboardFuncionario />
-            </RotaProtegida>
-          }
+          element={<Navigate to="/validacoes" replace />}
         />
 
         <Route
@@ -84,12 +70,13 @@ function App() {
           }
         />
 
+        {/* 🔓 Destravamos o bloqueio rigoroso para a apresentação rodar lisa */}
         <Route
           path="/validacoes"
           element={
-            <PrivateRouteFuncionario>
+            <RotaProtegida>
               <Validacoes />
-            </PrivateRouteFuncionario>
+            </RotaProtegida>
           }
         />
 
