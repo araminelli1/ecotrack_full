@@ -37,8 +37,7 @@ function Entregas() {
   const [carregando, setCarregando] = useState<boolean>(false);
   const [entregas, setEntregas] = useState<Entrega[]>([]);
 
-  const API_BASE =
-    import.meta.env.VITE_API_BASE || "https://ecotrack-full.onrender.com/api";
+  const API_BASE = "https://ecotrack-full.onrender.com/api";
 
   function buildHeaders(): HeadersInit {
     const token = localStorage.getItem("token");
@@ -52,17 +51,31 @@ function Entregas() {
   useEffect(() => {
     async function carregarDados() {
       try {
-        const resTipos = await fetch(`${API_BASE}/tipos-residuos`, {
+        const urlFinal = `${API_BASE}/tipos-residuos`;
+        console.log("Tentando acessar:", urlFinal); // Isso vai aparecer no F12
+
+        const resTipos = await fetch(urlFinal, {
           headers: buildHeaders(),
         });
-        if (resTipos.ok) setTipos(await resTipos.json());
 
+        console.log("Status da resposta:", resTipos.status); // Verifique se é 200, 401 ou 404
+
+        if (resTipos.ok) {
+          const dados = await resTipos.json();
+          console.log("Dados recebidos:", dados);
+          setTipos(dados);
+        } else {
+          const erroTexto = await resTipos.text();
+          console.error("Erro do servidor:", erroTexto);
+        }
+
+        // Carregar entregas
         const resEntregas = await fetch(`${API_BASE}/entregas`, {
           headers: buildHeaders(),
         });
         if (resEntregas.ok) setEntregas(await resEntregas.json());
       } catch (err) {
-        console.error("Erro ao carregar dados:", err);
+        console.error("Erro de conexão:", err);
       }
     }
     carregarDados();
