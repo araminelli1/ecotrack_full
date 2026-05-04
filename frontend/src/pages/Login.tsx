@@ -32,7 +32,7 @@ export default function Login() {
 
       alert("Login realizado com sucesso!");
       // Ajuste "/dashboard" para a rota principal do seu sistema, caso seja diferente
-      navigate("/dashboard");
+      navigate("/dashboard-aluno");
     } catch (err: any) {
       alert(
         err.response?.data?.error ||
@@ -86,7 +86,7 @@ export default function Login() {
   };
 
   return (
-    <div style={containerStyle}>
+    <main style={containerStyle}>
       <div style={cardStyle}>
         <h2
           style={{
@@ -154,7 +154,7 @@ export default function Login() {
           <Link
             to="/cadastro" // Garanta que esta é a rota correta para a sua tela de cadastro
             style={{
-              color: "#10b981",
+              color: "#059669",
               fontWeight: "bold",
               textDecoration: "none",
             }}
@@ -163,6 +163,6 @@ export default function Login() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

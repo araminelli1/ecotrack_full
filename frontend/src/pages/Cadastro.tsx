@@ -102,7 +102,7 @@ export default function Cadastro() {
   };
 
   return (
-    <div style={containerStyle}>
+    <main style={containerStyle}>
       <div style={cardStyle}>
         <h2
           style={{
@@ -213,7 +213,7 @@ export default function Cadastro() {
           <Link
             to="/login"
             style={{
-              color: "#10b981",
+              color: "#059669",
               fontWeight: "bold",
               textDecoration: "none",
             }}
@@ -222,6 +222,6 @@ export default function Cadastro() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
