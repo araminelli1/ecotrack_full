@@ -29,10 +29,11 @@ export default function Login() {
 
       // Salva o token de segurança no navegador
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("usuario", JSON.stringify(response.data.user));
 
       alert("Login realizado com sucesso!");
       // Ajuste "/dashboard" para a rota principal do seu sistema, caso seja diferente
-      navigate("/dashboard-aluno");
+      window.location.href = "/dashboard-aluno";
     } catch (err: any) {
       alert(
         err.response?.data?.error ||
