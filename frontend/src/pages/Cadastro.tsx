@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 export default function Cadastro() {
   const [nome, setNome] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  const [ra, setRa] = useState<string>("");
   const [senha, setSenha] = useState<string>("");
   const [carregando, setCarregando] = useState(false);
 
@@ -13,8 +14,15 @@ export default function Cadastro() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!nome || !email || !senha) {
+    if (!nome || !email || !ra || !senha) {
       alert("Preencha todos os campos!");
+      return;
+    }
+
+    // NOVA TRAVA DO RA: Verifica se tem exatamente 7 números
+    const raValido = /^\d{7}$/;
+    if (!raValido.test(ra)) {
+      alert("O RA deve conter exatamente 7 números.");
       return;
     }
 
@@ -39,8 +47,8 @@ export default function Cadastro() {
       await axios.post(`${API_BASE}/api/auth/register`, {
         nome,
         email,
+        ra,
         senha,
-        tipoUsuario: "ALUNO",
       });
 
       alert("Cadastro realizado com sucesso!");
@@ -52,13 +60,12 @@ export default function Cadastro() {
     }
   };
 
-  // Estilos rápidos para o design
   const containerStyle: React.CSSProperties = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     minHeight: "100vh",
-    backgroundColor: "#f0fdf4", // Verde bem clarinho de fundo
+    backgroundColor: "#f0fdf4",
     fontFamily: "sans-serif",
   };
 
@@ -84,7 +91,7 @@ export default function Cadastro() {
   const buttonStyle: React.CSSProperties = {
     width: "100%",
     padding: "12px",
-    backgroundColor: "#10b981", // Verde Esmeralda
+    backgroundColor: "#10b981",
     color: "white",
     border: "none",
     borderRadius: "6px",
@@ -108,6 +115,30 @@ export default function Cadastro() {
         </h2>
 
         <form onSubmit={handleSubmit}>
+          <div>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >
+              RA (Registro Acadêmico)
+            </label>
+            <input
+              placeholder="Ex: 1234567"
+              value={ra}
+              maxLength={7} // Impede de colar ou digitar mais que 7
+              onChange={(e) => {
+                // A mágica acontece aqui: substitui qualquer coisa que NÃO seja número por "nada"
+                const apenasNumeros = e.target.value.replace(/\D/g, "");
+                setRa(apenasNumeros);
+              }}
+              style={inputStyle}
+            />
+          </div>
+
           <div>
             <label
               style={{
@@ -179,7 +210,6 @@ export default function Cadastro() {
         <div
           style={{ marginTop: "20px", textAlign: "center", fontSize: "14px" }}
         >
-          <p style={{ color: "#777" }}>Já tem uma conta?</p>
           <Link
             to="/login"
             style={{

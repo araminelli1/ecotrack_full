@@ -1,127 +1,168 @@
 import { useState } from "react";
+import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
-function Login() {
-  const navigate = useNavigate();
-
+export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErro("");
+
+    if (!email || !senha) {
+      alert("Preencha todos os campos!");
+      return;
+    }
+
     setCarregando(true);
-
     try {
-      const resposta = await fetch(
-        "https://ecotrack-full.onrender.com/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            senha,
-          }),
-        },
+      const API_BASE =
+        import.meta.env.VITE_API_BASE || "https://ecotrack-full.onrender.com";
+
+      const response = await axios.post(`${API_BASE}/api/auth/login`, {
+        email,
+        senha,
+      });
+
+      // Salva o token de segurança no navegador
+      localStorage.setItem("token", response.data.token);
+
+      alert("Login realizado com sucesso!");
+      // Ajuste "/dashboard" para a rota principal do seu sistema, caso seja diferente
+      navigate("/dashboard");
+    } catch (err: any) {
+      alert(
+        err.response?.data?.error ||
+          "Erro no login. Verifique suas credenciais.",
       );
-
-      if (!resposta.ok) {
-        setErro("Email ou senha inválidos.");
-        setCarregando(false);
-        return;
-      }
-
-      const dados = await resposta.json();
-
-      // salvar token e usuário no localStorage
-      localStorage.setItem("token", dados.token);
-      localStorage.setItem("usuario", JSON.stringify(dados.user));
-
-      // 🔥 CORREÇÃO: Padronizando tudo para letras minúsculas para evitar bugs
-      const tipoUsuario = dados.user.tipoUsuario.toLowerCase();
-
-      // redirecionar conforme o tipo de usuário
-      if (tipoUsuario === "aluno") {
-        navigate("/dashboard-aluno");
-      } else if (tipoUsuario === "funcionario" || tipoUsuario === "admin") {
-        // Redireciona o funcionário direto para a tela de aprovações
-        navigate("/validacoes");
-      } else {
-        navigate("/");
-      }
-    } catch (err) {
-      console.error(err);
-      setErro("Erro ao conectar com o servidor.");
     } finally {
       setCarregando(false);
     }
-  }
+  };
+
+  // Os mesmos estilos profissionais da tela de Cadastro
+  const containerStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: "100vh",
+    backgroundColor: "#f0fdf4",
+    fontFamily: "sans-serif",
+  };
+
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: "#fff",
+    padding: "40px",
+    borderRadius: "12px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+    width: "100%",
+    maxWidth: "400px",
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "12px",
+    marginBottom: "15px",
+    borderRadius: "6px",
+    border: "1px solid #ddd",
+    boxSizing: "border-box",
+    fontSize: "16px",
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "12px",
+    backgroundColor: "#10b981",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "background 0.3s",
+  };
 
   return (
-    <div
-      style={{ maxWidth: 400, margin: "40px auto", fontFamily: "sans-serif" }}
-    >
-      <h2>Login EcoTrack</h2>
-
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ width: "100%", padding: 8 }}
-            required
-          />
-        </div>
-
-        <div style={{ marginBottom: 12 }}>
-          <label>Senha</label>
-          <input
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            style={{ width: "100%", padding: 8 }}
-            required
-          />
-        </div>
-
-        {erro && <p style={{ color: "red", marginBottom: 12 }}>{erro}</p>}
-
-        <button
-          type="submit"
-          disabled={carregando}
+    <div style={containerStyle}>
+      <div style={cardStyle}>
+        <h2
           style={{
-            width: "100%",
-            padding: 10,
-            cursor: "pointer",
-            fontWeight: "bold",
+            textAlign: "center",
+            color: "#065f46",
+            marginBottom: "30px",
           }}
         >
-          {carregando ? "Entrando..." : "Entrar"}
-        </button>
-      </form>
-      <div style={{ marginTop: 20, textAlign: "center", fontSize: "14px" }}>
-        <p style={{ margin: 0, color: "#555" }}>Não tem uma conta?</p>
-        <Link
-          to="/cadastro"
-          style={{
-            color: "#28a745",
-            textDecoration: "none",
-            fontWeight: "bold",
-            display: "inline-block",
-            marginTop: 5,
-          }}
+          Login EcoTrack
+        </h2>
+
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >
+              Senha
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={carregando}
+            style={{ ...buttonStyle, opacity: carregando ? 0.7 : 1 }}
+          >
+            {carregando ? "Entrando..." : "Entrar"}
+          </button>
+        </form>
+
+        <div
+          style={{ marginTop: "20px", textAlign: "center", fontSize: "14px" }}
         >
-          Criar nova conta agora
-        </Link>
+          <Link
+            to="/cadastro" // Garanta que esta é a rota correta para a sua tela de cadastro
+            style={{
+              color: "#10b981",
+              fontWeight: "bold",
+              textDecoration: "none",
+            }}
+          >
+            Criar nova conta agora
+          </Link>
+        </div>
       </div>
     </div>
   );
 }
-
-export default Login;

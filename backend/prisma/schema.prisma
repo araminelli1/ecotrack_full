@@ -25,24 +25,24 @@ model Cursos {
 }
 
 model Usuarios {
-  id          Int       @id @default(autoincrement())
-  nome        String
-  email       String    @unique
-  ra          String?   @unique
-  cursoId     Int?
-  campusId    Int?
-  tipoUsuario String
-  senhaHash   String
-  criadoEm    DateTime  @default(now())
+  id                  Int       @id @default(autoincrement())
+  nome                String
+  email               String    @unique
+  ra                  String?   @unique
+  cursoId             Int?
+  campusId            Int?
+  tipoUsuario         String    @default("ALUNO")
+  senhaHash           String
+  criadoEm            DateTime  @default(now())
 
-  curso  Cursos? @relation(fields: [cursoId], references: [id])
-  campus Campi?  @relation(fields: [campusId], references: [id])
+  curso               Cursos?   @relation(fields: [cursoId], references: [id])
+  campus              Campi?    @relation(fields: [campusId], references: [id])
 
-  entregas Entrega[]
-  validacoes Entrega[] @relation("Validador")
+  entregas            Entrega[]
+  validacoes          Entrega[] @relation("Validador")
   historicoRecompensa HistoricoRecompensa[]
-  usuarioMedalhas UsuarioMedalhas[]
-  pontuacao PontuacaoUsuario?
+  usuarioMedalhas     UsuarioMedalhas[]
+  pontuacao           PontuacaoUsuario?
 }
 
 model TiposResiduos {

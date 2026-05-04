@@ -4,10 +4,28 @@ import jwt from "jsonwebtoken";
 
 export const authService = {
   register: async (data: any) => {
-    const { nome, email, senha, tipoUsuario } = data;
+    const { nome, email, senha, ra } = data;
 
-    const userExists = await prisma.usuarios.findUnique({ where: { email } });
-    if (userExists) throw new Error("E-mail já cadastrado.");
+    if (!ra) throw new Error("O RA é obrigatório para cadastro de alunos.");
+
+    // NOVA TRAVA DO RA NO BACKEND: Segunda camada de segurança
+    const raValido = /^\d{7}$/;
+    if (!raValido.test(ra)) {
+      throw new Error("O RA deve conter exatamente 7 dígitos numéricos.");
+    }
+
+    const userExists = await prisma.usuarios.findFirst({
+      where: {
+        OR: [{ email: email }, { ra: ra }],
+      },
+    });
+
+    if (userExists) {
+      if (userExists.email === email)
+        throw new Error("Este e-mail já está cadastrado.");
+      if (userExists.ra === ra)
+        throw new Error("Este RA já está cadastrado no sistema.");
+    }
 
     const senhaHash = await bcrypt.hash(senha, 10);
 
@@ -15,13 +33,15 @@ export const authService = {
       data: {
         nome,
         email,
+        ra,
         senhaHash,
-        tipoUsuario,
+        tipoUsuario: "ALUNO",
       },
       select: {
         id: true,
         nome: true,
         email: true,
+        ra: true,
         tipoUsuario: true,
         criadoEm: true,
       },
@@ -43,7 +63,7 @@ export const authService = {
       process.env.JWT_SECRET as string,
       {
         expiresIn: "7d",
-      }
+      },
     );
 
     return {
